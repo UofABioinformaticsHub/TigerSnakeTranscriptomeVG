@@ -1,0 +1,20 @@
+file	format	type	num_seqs	sum_len	min_len	avg_len	max_len	sum_gap	N50	L50
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/313A_C85FPANXX_CGTACG_L004_R1.fastq	FASTQ	DNA	30,180,462	2,987,949,397	35	99	100	0	100	14,939,747
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/313A_C85FPANXX_CGTACG_L004_R2.fastq	FASTQ	DNA	30,180,462	2,983,085,128	35	98.8	100	0	100	14,915,426
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/313B_C85FPANXX_GAGTGG_L004_R1.fastq	FASTQ	DNA	30,289,816	2,996,784,303	35	98.9	100	0	100	14,983,922
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/313B_C85FPANXX_GAGTGG_L004_R2.fastq	FASTQ	DNA	30,289,816	2,990,307,786	35	98.7	100	0	100	14,951,539
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/313C_C85FPANXX_ACTGAT_L004_R1.fastq	FASTQ	DNA	29,578,786	2,925,704,604	35	98.9	100	0	100	14,628,524
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/313C_C85FPANXX_ACTGAT_L004_R2.fastq	FASTQ	DNA	29,578,786	2,922,167,876	35	98.8	100	0	100	14,610,840
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/352A_C85FPANXX_ATTCCT_L004_R1.fastq	FASTQ	DNA	29,015,015	2,872,639,394	35	99	100	0	100	14,363,197
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/352A_C85FPANXX_ATTCCT_L004_R2.fastq	FASTQ	DNA	29,015,015	2,869,701,239	35	98.9	100	0	100	14,348,507
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/352B_C85FPANXX_ATCACG_L004_R1.fastq	FASTQ	DNA	28,249,736	2,775,456,514	35	98.2	100	0	100	13,877,283
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/352B_C85FPANXX_ATCACG_L004_R2.fastq	FASTQ	DNA	28,249,736	2,775,937,040	35	98.3	100	0	100	13,879,686
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/352C_C85FPANXX_CGATGT_L004_R1.fastq	FASTQ	DNA	28,528,176	2,819,025,296	35	98.8	100	0	100	14,095,127
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/352C_C85FPANXX_CGATGT_L004_R2.fastq	FASTQ	DNA	28,528,176	2,815,648,599	35	98.7	100	0	100	14,078,243
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/58722A_R1.fastq	FASTQ	DNA	22,776,350	2,247,747,040	35	98.7	100	0	100	11,238,736
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/58722A_R2.fastq	FASTQ	DNA	22,776,350	2,246,241,376	35	98.6	100	0	100	11,231,207
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/58722B_R1.fastq	FASTQ	DNA	25,487,151	2,510,083,519	35	98.5	100	0	100	12,550,418
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/58722B_R2.fastq	FASTQ	DNA	25,487,151	2,508,977,700	35	98.4	100	0	100	12,544,889
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/58722C_R1.fastq	FASTQ	DNA	26,773,933	2,634,593,188	35	98.4	100	0	100	13,172,966
+/home/a1671704/fastdir/Data_TigerSnake/1_trimmedData/fastq/58722C_R2.fastq	FASTQ	DNA	26,773,933	2,632,764,024	35	98.3	100	0	100	13,163,821
+
