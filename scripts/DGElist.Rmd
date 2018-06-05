@@ -1,0 +1,39 @@
+---
+title: "DGElist"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Set Up
+
+```{r loadpackages}
+library(edgeR)
+library(limma)
+library(tibble)
+library(dplyr)
+library(magrittr)
+library(readr)
+```
+
+## Calculate/estimate dispersion ISOFORM
+
+```{r}
+x <- read.delim("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoDownstreamAnalysis/Quantification/kallistoAbundance.isoform.counts.matrix") %>%
+  column_to_rownames("X") %>%
+  as.matrix() %>%
+  DGEList() %>%
+  estimateDisp()
+```
+
+## Calculate/estimate dispersion GENE
+
+```{r}
+y <- read.delim("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoDownstreamAnalysis/Quantification/kallistoAbundance.gene.counts.matrix") %>%
+  column_to_rownames("X") %>%
+  as.matrix() %>%
+  DGEList() %>%
+  estimateDisp()
+```

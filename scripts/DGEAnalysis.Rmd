@@ -1,0 +1,77 @@
+---
+title: "DGEAnalysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE, warning = FALSE)
+```
+
+## Set Up
+
+```{r loadpackages}
+library(edgeR)
+library(ggplot2)
+library(magrittr)
+library(pander)
+library(dplyr)
+library(tibble)
+```
+
+## Load Data
+
+```{r, echo=FALSE}
+data = read.table("../3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoDownstreamAnalysis/Quantification/kallistoAbundance.gene.counts.matrix", header=T, row.names=1, com='')
+rnaseqMatrix = round(data)
+rnaseqMatrix = rnaseqMatrix[rowSums(cpm(rnaseqMatrix) > 1) >= 1,]
+conditions = factor(c("Mainland", "Mainland", "Island"))
+```
+
+```{r, echo=FALSE}
+exp_study = DGEList(counts=rnaseqMatrix, group=conditions)
+exp_study = calcNormFactors(exp_study)
+et = exactTest(exp_study, dispersion=1.522853)
+tTags = topTags(et,n=NULL)
+result_table = tTags$table %>%
+  rownames_to_column("ID") %>%
+  as_tibble()
+```
+
+## Create Plots
+
+```{r, echo=FALSE}
+result_table %>%
+  mutate(Sig = PValue < 0.002) %>%
+  ggplot(aes(logCPM, logFC, colour = Sig)) +
+  geom_point(alpha = 0.5) +
+  scale_colour_manual(values = c("black", "red")) +
+  labs(x = "Average Expression",
+       y = "logFC") +
+  guides(colour = FALSE) 
+
+ggplot(result_table, aes(logFC, -log10(PValue))) +
+         geom_point()
+
+result_table %>%
+  rownames_to_column("N") %>%
+  as_tibble() %>%
+  arrange(PValue)
+```
+
+```{r}
+blast_results <- read_tsv("../3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoQualityAssessment/blastx.outfmt6", col_names = FALSE) %>%
+  rename(ID = X1,
+         Uniprot = X2) %>%
+  dplyr::select(-starts_with("X")) %>%
+  mutate(ID = gsub("_i[0-9]+", "", ID))
+```
+
+```{r}
+result_table %>%
+  slice(1:10) %>%
+  dplyr::select(-FDR) %>%
+  left_join(blast_results) %>%
+  pander()
+```
+
