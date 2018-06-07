@@ -9,16 +9,11 @@ Data in this repository is structured using the following layout:
 |             | `FastQC/*fastqc.zip`                | Data for each Fastqc report |
 |             | `FastQC/ngsReports_Fastqc.Rmd/.html`| ngsReport of Fastqc summaries for raw data |
 |             | `seqkitstatsRAW.tsv`                | Tab delimited file containing seqkit statistics |
-|                |
+|             |
 | `1_trimmedData` | `FastQC/*fastqc.html`                | Individual Fastqc summaries |
 |                 | `FastQC/ngsReports_Fastqc.Rmd/.html` | ngsReports of Fastqc summaries for trimmed data |
 |                 | `seqkitstatsTRIM.tsv`                | Tab delimited file containing seqkit statistics |
-|                      |
-| `2_assemblyComparison` | `coverageTranscriptomeALL.tsv` |
-|                        | `readRepAllAssemblies.tsv`     |
-|                            |
-| `3_transcriptomeAssembly`  | `trinity`
-|                            |
+|                 |
 | `scripts` | `adapterRemoval.sh`                       | shell script for removal of adapters and low quality scoring bases |
 |           | `fastqc.sh`                               | shell script for fastqc reports of raw data |
 |           | `mergereads.sh`                           | shell script to merge raw reads together |
