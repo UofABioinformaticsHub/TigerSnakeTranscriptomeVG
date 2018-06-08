@@ -1,0 +1,120 @@
+---
+title: "RawDataSummary"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE, warning = FALSE)
+```
+
+## Set Up
+
+```{r loadpackages}
+library(reshape2)
+library(readr)
+library(dplyr)
+library(magrittr)
+library(ggplot2)
+library(pander)
+library(ngsReports)
+library(tibble)
+library(tidyr)
+library(scales)
+```
+
+```{r rawFastQC, echo=FALSE}
+rawFastQC <- list.files("~/TigerSnakeTranscriptomeVG/0_rawData/FastQC/", pattern = "zip", full.names = TRUE) %>%
+  getFastqcData()
+```
+
+```{r trimmedFastQC, echo=FALSE}
+trimmedFastQC <- list.files("~/TigerSnakeTranscriptomeVG/1_trimmedData/FastQC/", pattern = "zip", full.names = TRUE) %>%
+  getFastqcData()
+```
+
+## Read Totals
+
+```{r readTotalTable, echo=FALSE}
+# Make table to show Raw and Trim read totals
+list(
+  readTotals(rawFastQC) %>% mutate(Type = "Raw"),
+  readTotals(trimmedFastQC) %>% mutate(Type = "Trimmed")
+) %>%
+  bind_rows() %>%
+  filter(grepl("R1", Filename)) %>%
+  mutate(Filename = gsub("([0-9ABC]+)_.+", "\\1", Filename)) %>%
+  dcast(Filename~Type,value.var = "Total_Sequences") %>%
+  mutate(Discarded = percent(1-Trimmed/Raw)) %>%
+  pander(justify = "lrrr",
+         big.mark = ",",
+         caption = "*Read Totals before and after trimming*")
+```
+
+```{r readTotalVisualPlot, echo=FALSE}
+# make visual bar graph to show read totals before and after trimming
+# png("readTotalTable.png", width = 7, height = 7, units = "in", res = 300)
+list(
+  readTotals(rawFastQC) %>% mutate(Type = "Raw"),
+  readTotals(trimmedFastQC) %>% mutate(Type = "Trimmed")
+) %>%
+  bind_rows() %>%
+  filter(grepl("R1", Filename)) %>%
+  mutate(Type = as.factor(Type),
+         Filename = gsub("([^_]+)_.+", "\\1", Filename)) %>%
+  ggplot(aes(x = Filename, y = Total_Sequences/1e06, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(y = "Read Totals (millions)") +
+  scale_fill_manual(values = c(rgb(0.8, 0, 0), rgb(0.2, 0.6, 0.2))) +
+  theme_bw()
+# dev.off()
+```
+
+## Raw Basic Statistics
+
+```{r rawStatistics, echo=FALSE}
+rawstats <- read_tsv("~/TigerSnakeTranscriptomeVG/0_rawData/seqkitstatsRAW.tsv")
+```
+
+```{r, echo=FALSE}
+rawstats %>%
+  mutate(file = basename(file)) %>%
+  filter(grepl("R1", file)) %>%
+  mutate(file = gsub("([0-9ABC]+)_.+", "\\1", file)) %>%
+  dplyr::select(File = file, 
+                `Number of Sequences` = num_seqs, 
+                `Length Sum` = sum_len,
+                `Minimum Length` = min_len,
+                `Average Length` = avg_len,
+                `Maximum Length` = max_len) %>%
+  pander(split.table = Inf,
+         justify = "lrrrrr",
+         big.mark = ",",
+         caption = "Summary Table of Statistics of Raw Data")
+```
+
+## Trimmed Basic Statistics
+
+```{r trimmedStatistics, echo=FALSE}
+trimstats <- read_tsv("~/TigerSnakeTranscriptomeVG/1_trimmedData/seqkitstatsTRIM.tsv")
+```
+
+```{r, echo=FALSE}
+trimstats %>%
+  mutate(file = basename(file)) %>%
+  filter(grepl("R1", file)) %>%
+  mutate(file = gsub("([0-9ABC]+)_.+", "\\1", file)) %>%
+  dplyr::select(File = file, 
+                `Number of Sequences` = num_seqs, 
+                `Length Sum` = sum_len,
+                `Minimum Length` = min_len,
+                `Average Length` = avg_len,
+                `Maximum Length` = max_len) %>%
+  pander(split.table = Inf,
+         justify = "lrrrrr",
+         big.mark = ",",
+         caption = "Summary Table of Statistics of Trimmed Data")
+```
+

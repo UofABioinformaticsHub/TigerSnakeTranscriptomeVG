@@ -1,0 +1,224 @@
+---
+title: "Benchmarking Universal SingleCopy Orthologs (BUSCOs)"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Set Up
+
+```{r loadpackages}
+library(tidyverse)
+library(pander)
+library(reshape2)
+```
+
+```{r, load DN data, echo=FALSE}
+buscoDNmetazoa <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoQualityAssessment/buscoOutput/DN_metazoa/full_table_busco_Trinity.tsv", skip=4)  %>%
+  rename(BuscoID = `# Busco id`)
+
+buscoDNtetrapoda <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoQualityAssessment/buscoOutput/DN_tetrapoda/full_table_busco_TrinityDN_tetrapoda.tsv", skip=4) %>%
+  rename(BuscoID = `# Busco id`)
+
+buscoDNvertebrata <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoQualityAssessment/buscoOutput/DN_vertebrata/full_table_busco_TrinityDN_vertebrata.tsv", skip=4) %>%
+  rename(BuscoID = `# Busco id`)
+```
+
+```{r, load DNcollapsed data, echo=FALSE}
+buscoDNmetazoa_collapsed <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoQualityAssessment/buscoOutput/collapsedDN_metazoa/full_table_busco_Trinity_metazoa_collasped.tsv", skip=4) %>%
+  rename(BuscoID = `# Busco id`)
+
+buscoDNtetrapoda_collapsed <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoQualityAssessment/buscoOutput/collapsedDN_tetrapoda/full_table_busco_Trinity_tetrapoda_collasped.tsv", skip=4) %>%
+  rename(BuscoID = `# Busco id`)
+
+buscoDNvertebrata_collapsed <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoQualityAssessment/buscoOutput/collapsedDN_vertebrata/full_table_busco_Trinity_vertebrata_collasped.tsv", skip=4) %>%
+  rename(BuscoID = `# Busco id`)
+```
+
+## Metazoan Lineage BUSCO Analysis
+
+```{r, echo=FALSE}
+BUSCOmetazoa1 <- buscoDNmetazoa %>% 
+  distinct(BuscoID, Status) %>%
+  group_by(Status) %>% 
+  tally() %>%
+  bind_rows(data_frame(
+    Status = "Total",
+    n = sum(.$n)
+  )) %>%
+  rename(`De novo` = n) %>%
+  as.data.frame()
+```
+
+```{r, echo=FALSE}
+BUSCOmetazoa2 <- buscoDNmetazoa_collapsed %>%
+  distinct(BuscoID, Status) %>%
+  group_by(Status) %>%
+  tally() %>%
+  bind_rows(data_frame(
+    Status = "Total",
+    n = sum(.$n)
+  )) %>%
+  rename(`De novo + CD-HIT` = n) %>%
+  as.data.frame()
+```
+
+```{r, echo=FALSE}
+BUSCOmetazoa1 %>%
+  left_join(BUSCOmetazoa2) %>%
+  pander(caption = 'Number of transcripts compared to 978 BUSCOs in Metazoan lineage',
+         justify = "lrr",
+         big.mark = ",")
+```
+
+```{r, echo=FALSE, fig.cap="Representation of number of transcripts which compared to BUSCOs within the metazoa lineage before (*De novo*) and after (*De novo* + CD-HIT) removing reduncy from the *De novo* transcriptome"}
+BUSCOmetazoa1 %>%
+  left_join(BUSCOmetazoa2) %>%
+  slice(1:4) %>%
+  melt(id.vars = "Status", value.name = "BUSCOs", variable.name = "Method") %>%
+  ggplot(aes(x = Status, y = BUSCOs, fill = Method)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c(rgb(0.8, 0, 0), rgb(0.2, 0.6, 0.2))) +
+  labs(y = "Number of BUSCOs",
+       fill = "Method") +
+  theme_bw()
+```
+
+
+## Tetrapoda Lineage BUSCO Analysis
+
+```{r, echo=FALSE}
+BUSCOtetrapoda1 <- buscoDNtetrapoda %>%
+  distinct(BuscoID, Status) %>%
+  group_by(Status) %>% 
+  tally() %>%
+  bind_rows(data_frame(
+    Status = "Total",
+    n = sum(.$n)
+  )) %>%
+  rename(`De novo` = n)
+```
+
+```{r, echo=FALSE}
+BUSCOtetrapoda2 <- buscoDNtetrapoda_collapsed %>%
+  distinct(BuscoID, Status) %>%
+  group_by(Status) %>%
+  tally() %>%
+  bind_rows(data_frame(
+    Status = "Total",
+    n = sum(.$n)
+  )) %>%
+  rename(`De novo + CD-HIT` = n)
+```
+
+```{r, echo=FALSE}
+BUSCOtetrapoda1 %>%
+  left_join(BUSCOtetrapoda2) %>%
+  pander(caption = "Number of transcripts compared to 3950 BUSCOs in Tetrapoda lineage",
+         justify = "lrr",
+         big.mark = ",")
+```
+
+```{r, echo=FALSE, fig.cap="Representation of number of transcripts which compared to BUSCOs within the tetrapoda lineage before (*De novo*) and after (*De novo* + CD-HIT) removing reduncy from the *De novo* transcriptome"}
+BUSCOtetrapoda1 %>%
+  left_join(BUSCOtetrapoda2) %>%
+  slice(1:4) %>%
+  melt(id.vars = "Status", value.name = "BUSCOs", variable.name = "Method") %>%
+  ggplot(aes(x = Status, y = BUSCOs, fill = Method)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c(rgb(0.8, 0, 0), rgb(0.2, 0.6, 0.2))) +
+  labs(y = "Number of BUSCOs",
+       fill = "Method") +
+  theme_bw()
+```
+
+
+## Vertebrata Lineage BUSCO Analysis
+
+```{r, echo=FALSE}
+BUSCOvertebrata1 <- buscoDNvertebrata %>% 
+  distinct(BuscoID, Status) %>%
+  group_by(Status) %>% 
+  tally() %>%
+  bind_rows(data_frame(
+    Status = "Total",
+    n = sum(.$n)
+  )) %>%
+  rename(`De novo` = n)
+```
+
+```{r, echo=FALSE}
+BUSCOvertebrata2 <- buscoDNvertebrata_collapsed %>%
+  distinct(BuscoID, Status) %>%
+  group_by(Status) %>%
+  tally() %>%
+  bind_rows(data_frame(
+    Status = "Total",
+    n = sum(.$n)
+  )) %>%
+  rename(`De novo + CD-HIT` = n)
+```
+
+```{r, echo=FALSE}
+BUSCOvertebrata1 %>%
+  left_join(BUSCOvertebrata2) %>%
+  pander(caption = 'Number of transcripts compared to 2586 BUSCOs in Vertebrata lineage',
+         justify = "lrr",
+         big.mark = ",")
+```
+
+```{r, echo=FALSE, fig.cap="Representation of number of transcripts which compared to BUSCOs within the vertebrata lineage before (*De novo*) and after (*De novo* + CD-HIT) removing reduncy from the *De novo* transcriptome"}
+BUSCOvertebrata1 %>%
+  left_join(BUSCOvertebrata2) %>%
+  slice(1:4) %>%
+  melt(id.vars = "Status", value.name = "BUSCOs", variable.name = "Method") %>%
+  ggplot(aes(x = Status, y = BUSCOs, fill = Method)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c(rgb(0.8, 0, 0), rgb(0.2, 0.6, 0.2))) +
+  labs(y = "Number of BUSCOs",
+       fill = "Method") +
+  theme_bw()
+```
+
+## Summary of BUSCO representation across lineages
+
+```{r, echo=FALSE}
+DNbuscoSummary <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoQualityAssessment/buscoOutput/DeNovoSummaryBUSCO.tsv")
+
+CDHITbuscoSummary <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoQualityAssessment/buscoOutput/CDHITSummaryBUSCO.tsv")
+```
+
+```{r, echo=FALSE}
+DNbuscoSummary %>%
+  pander(justify = "lrrr",
+         caption = "Percentage of Benchmarking Universal SingleCopy Orthologs present in the Trinity De novo assembly before reducncing redundancy")
+```
+
+```{r, echo=FALSE}
+CDHITbuscoSummary %>%
+  pander(justify = "lrrr",
+         caption = "Percentage of Benchmarking Universal SingleCopy Orthologs present in the Trinity De novo assembly after reducing redundancy")
+```
+
+```{r, echo=FALSE, fig.cap="*Percentage of Benchmarking Universal SingleCopy Orthologs present in the Trinity De novo assembly before and after reducing redundancy*"}
+
+```
+
+
+
+```{r, code for finding how many duplicated transcripts map to different buscos, echo=FALSE}
+# busco %>%
+#   filter(Status == "Duplicated") %>%
+#   mutate(GeneID = gsub("_i[0-9]*", "", Sequence)) %>%
+#   distinct(BuscoID, GeneID) %>%
+#   group_by(BuscoID) %>%
+#   summarise(n = n()) %>%
+#   arrange(desc(n)) %>%
+#   filter(n > 1)
+```
+
+

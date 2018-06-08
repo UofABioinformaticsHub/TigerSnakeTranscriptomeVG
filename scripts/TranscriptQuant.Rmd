@@ -1,0 +1,132 @@
+---
+title: "TranscriptQuantification"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, warning = FALSE)
+```
+
+## Set Up
+
+```{r loadpackages}
+library(readr)
+library(dplyr)
+library(tibble)
+library(magrittr)
+library(pander)
+library(edgeR)
+library(reshape2)
+library(pheatmap)
+library(ggplot2)
+```
+
+## Highly Expressed Genes
+
+```{r, echo=FALSE}
+tpmCounts <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoDownstreamAnalysis/Quantification/kallistoAbundance.gene.TPM.not_cross_norm") %>%
+  rename(GeneID = X1)
+```
+
+```{r, echo=FALSE}
+tpmCounts %>%
+  mutate(Total = `313abundance` + `352abundance` + `58722abundance`) %>%
+  arrange(desc(Total)) %>%
+  slice(1:10) %>%
+  dplyr::select(GeneID, contains("abundance")) %>%
+  as.data.frame() %>%
+  column_to_rownames("GeneID") %>%
+  pander(justify = "lrrr",
+         big.mark = ",",
+         caption = "Top 10 most highly abundant genes across all samples")
+```
+
+```{r, echo=FALSE, fig.cap="*Heatmap showing the 10 most highly expressed genes across all samples. Colours show expression as $\\log_2$ TPM.*"}
+tpmCounts %>%
+  mutate(Total = `313abundance` + `352abundance` + `58722abundance`) %>%
+  arrange(desc(Total)) %>%
+  slice(1:10) %>%
+  dplyr::select(GeneID, contains("abundance")) %>%
+  as.data.frame() %>%
+  column_to_rownames("GeneID") %>%
+  as.matrix() %>%
+  log2() %>%
+  set_colnames(gsub("abundance", "", colnames(.))) %>%
+  pheatmap(scale = "none",
+           cluster_rows = TRUE,
+           cluster_cols = TRUE)
+```
+
+## Highly Expressed Transcripts
+
+```{r, echo=FALSE}
+TransExprTPM <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoDownstreamAnalysis/Quantification/kallistoAbundance.isoform.TPM.not_cross_norm") %>%
+  rename(IsoformID = X1)
+```
+
+```{r, table of highly expressed transcript isoforms, echo=FALSE}
+TransExprTPM %>%
+  mutate(Total = `313abundance` + `352abundance` + `58722abundance`) %>%
+  arrange(desc(Total)) %>%
+  slice(1:15) %>%
+  dplyr::select(IsoformID, contains("abundance")) %>%
+  as.data.frame() %>%
+  column_to_rownames("IsoformID") %>%
+  pander(justify = "lrrr",
+         big.mark = ",",
+         caption = "Top 15 highly expressed transcript isoforms in order of highest total expression")
+```
+
+```{r, echo=FALSE, fig.cap="*Heatmap of top 15 most highly expressed transcripts across all samples and includes the most highly expressed transcript for almost all top ten highly expressed genes. Colours show expression as $\\log_2$ TPM.*"}
+TransExprTPM %>%
+  mutate(Total = `313abundance` + `352abundance` + `58722abundance`) %>%
+  arrange(desc(Total)) %>%
+  slice(1:15) %>%
+  dplyr::select(IsoformID, contains("abundance")) %>%
+  as.data.frame() %>%
+  column_to_rownames("IsoformID") %>%
+  as.matrix() %>%
+  log2() %>%
+  set_colnames(gsub("abundance", "", colnames(.))) %>%
+  pheatmap(scale = "none",
+           cluster_rows = TRUE,
+           cluster_cols = TRUE)
+```
+
+## Protein Identification of Top 15 Most Highly Expressed Isoforms
+
+```{r, echo=FALSE}
+# isoformBLAST <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoQualityAssessment/blastx.outfmt6", col_names = FALSE) %>%
+#   rename(IsoformID = X1,
+#          UniProtID = X2) %>%
+#   dplyr::select(IsoformID, UniProtID) %>%
+#   distinct(IsoformID, UniProtID)
+```
+
+```{r, echo=FALSE}
+# TransExprTPM %>%
+#   mutate(Total = `313abundance` + `352abundance` + `58722abundance`) %>%
+#   arrange(desc(Total)) %>%
+#   slice(1:15) %>%
+#   dplyr::select(IsoformID) %>%
+#   left_join(isoformBLAST) %>%
+#   as.data.frame() %>%
+#   pander(justify = "ll")
+```
+
+```{r, echo=FALSE}
+FUNCtrans <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/trinityDeNovoAssembly/trinityDeNovoDownstreamAnalysis/Top15IsoformsFunctionalAnnotationtsv.txt")
+```
+
+```{r, echo=FALSE}
+FUNCtrans %>%
+  dplyr::select(IsoformID, UniProtID, Organism, `Common name`, Protein, Family, Subfamily) %>%
+  pander(split.table = Inf,
+         justify = "lllllll",
+         caption = "Protein identification of the top 15 most highly expressed transcripts using UniProt protein database. All transcripts were found expressed in venom gland tissue and have their UniProt ID number (UniProtID) and the species in which the protein was found")
+
+
+

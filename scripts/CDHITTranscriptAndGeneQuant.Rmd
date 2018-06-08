@@ -1,0 +1,202 @@
+---
+title: "CDHITTranscriptandGeneQuant"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE, warning = FALSE)
+```
+
+## Set up
+
+```{r laodpackages}
+library(readr)
+library(dplyr)
+library(tibble)
+library(magrittr)
+library(pander)
+library(edgeR)
+library(reshape2)
+library(pheatmap)
+library(ggplot2)
+theme_set(theme_bw())
+```
+
+```{r, echo=FALSE}
+CDHITtpmcounts <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/collaspedTrinityDeNovo90/downstreamAnalysis/CDHITKallistoAbundance.gene.TPM.not_cross_norm") %>%
+  rename(GeneID = X1)
+```
+
+## Highly Expressed Genes
+
+```{r, echo=FALSE}
+CDHITtpmcounts %>%
+  mutate(Total = `abundance313` + `abundance352` + `abundance58722`) %>%
+  arrange(desc(Total)) %>%
+  slice(1:10) %>%
+  dplyr::select(GeneID, contains("abundance")) %>%
+  as.data.frame() %>%
+  column_to_rownames("GeneID") %>%
+  pander(justify = "lrrr",
+         big.mark = ",",
+         caption = "Top 10 most highly abundant genes across all samples after redeundancy removal")
+```
+
+```{r, echo=FALSE, fig.cap="*Heatmap showing the 10 most highly expressed genes across all samples. Colours show expression as $\\log_2$ TPM.*"}
+CDHITtpmcounts %>%
+  mutate(Total = `abundance313` + `abundance352` + `abundance58722`) %>%
+  arrange(desc(Total)) %>%
+  slice(1:10) %>%
+  dplyr::select(GeneID, contains("abundance")) %>%
+  as.data.frame() %>%
+  column_to_rownames("GeneID") %>%
+  as.matrix() %>%
+  log2() %>%
+  set_colnames(gsub("abundance", "", colnames(.))) %>%
+  set_colnames(c("313" = "SA Mainland",
+                 "352" = "Vic Mainland",
+                 "58722" = "St Francis Island")[as.character(colnames(.))]) %>%
+  pheatmap(scale = "none",
+           cluster_rows = TRUE,
+           cluster_cols = TRUE)
+```
+
+## Highly Expressed Isoforms
+
+```{r, echo=FALSE}
+CDHITtpmcountsTRANSC <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/collaspedTrinityDeNovo90/downstreamAnalysis/CDHITKallistoAbundance.isoform.TPM.not_cross_norm") %>%
+  rename(IsoformID = X1)
+```
+
+```{r, echo=FALSE}
+CDHITtpmcountsTRANSC %>%
+  mutate(Total = `abundance313` + `abundance352` + `abundance58722`) %>%
+  arrange(desc(Total)) %>%
+  slice(1:15) %>%
+  dplyr::select(IsoformID, contains("abundance")) %>%
+  as.data.frame() %>%
+  column_to_rownames("IsoformID") %>%
+  pander(justify = "lrrr",
+         big.mark = ",",
+         caption = "Top 15 highly expressed transcript isoforms in order of highest total expression")
+```
+
+```{r, echo=FALSE, fig.cap="*Heatmap of top 15 most highly expressed isoforms across all samples and includes the most highly expressed isoforms for almost all top ten highly expressed genes. Colours show expression as $\\log_2$ TPM.*"}
+CDHITtpmcountsTRANSC %>%
+  mutate(Total = `abundance313` + `abundance352` + `abundance58722`) %>%
+  arrange(desc(Total)) %>%
+  slice(1:15) %>%
+  dplyr::select(IsoformID, contains("abundance")) %>%
+  as.data.frame() %>%
+  column_to_rownames("IsoformID") %>%
+  as.matrix() %>%
+  log2() %>%
+  set_colnames(gsub("abundance", "", colnames(.))) %>%
+  pheatmap(scale = "none",
+           cluster_rows = TRUE,
+           cluster_cols = TRUE)
+```
+
+## Protein Identification of Top 15 Most Highly Expressed Isoforms
+
+```{r, echo=FALSE}
+blast_result <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/collaspedTrinityDeNovo90/qualityAssessment/blastx.outfmt6", col_names = FALSE) %>%
+  rename(IsoformID = X1,
+         UniprotID = X2) %>%
+  dplyr::select(IsoformID, UniprotID) %>%
+  distinct(IsoformID, UniprotID)
+```
+
+```{r}
+CDHITtpmcountsTRANSC %>%
+  mutate(Total = `abundance313` + `abundance352` + `abundance58722`) %>%
+  arrange(desc(Total)) %>%
+  slice(1:15) %>%
+  dplyr::select(IsoformID) %>%
+  left_join(blast_result) %>%
+  pander(justify = "ll")
+```
+
+## Differential Gene Expression Analysis 
+
+```{r, echo=FALSE}
+data = read.table("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/collaspedTrinityDeNovo90/downstreamAnalysis/CDHITKallistoAbundance.gene.counts.matrix", header=T, row.names=1, com='')
+rnaseqMatrix = round(data)
+rnaseqMatrix = rnaseqMatrix[rowSums(cpm(rnaseqMatrix) > 1) >= 1,]
+conditions = factor(c("Mainland", "Mainland", "Island"))
+```
+
+```{r, echo=FALSE}
+exp_study = DGEList(counts=rnaseqMatrix, group=conditions)
+exp_study = calcNormFactors(exp_study)
+et = exactTest(exp_study, dispersion=1.522853)
+tTags = topTags(et,n=NULL)
+result_table = tTags$table %>%
+  rownames_to_column("ID") %>%
+  as_tibble()
+```
+
+```{r, echo=FALSE}
+result_table %>%
+  mutate(Sig = PValue < 0.002) %>%
+  ggplot(aes(logCPM, logFC, colour = Sig)) +
+  geom_point(alpha = 0.5) +
+  scale_colour_manual(values = c("black", "red")) +
+  labs(x = "Average Expression",
+       y = "logFC") +
+  guides(colour = FALSE) 
+
+
+# ggplot(result_table, aes(logFC, -log10(PValue))) +
+#          geom_point()
+
+# result_table %>%
+#   rownames_to_column("N") %>%
+#   as_tibble() %>%
+#   arrange(PValue) 
+```
+
+```{r, echo=FALSE}
+result_table %>%
+  slice(1:10) %>%
+  pander()
+```
+
+## Differentially Expressed Transcripts
+
+```{r, echo=FALSE}
+data = read.table("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/collaspedTrinityDeNovo90/downstreamAnalysis/CDHITKallistoAbundance.isoform.counts.matrix", header=T, row.names=1, com='')
+rnaseqMatrix = round(data)
+rnaseqMatrix = rnaseqMatrix[rowSums(cpm(rnaseqMatrix) > 1) >= 1,]
+conditions = factor(c("Mainland", "Mainland", "Island"))
+```
+
+```{r, echo=FALSE}
+exp_study = DGEList(counts=rnaseqMatrix, group=conditions)
+exp_study = calcNormFactors(exp_study)
+et = exactTest(exp_study, dispersion=1.522853)
+tTags = topTags(et,n=NULL)
+result_tableTRAN = tTags$table %>%
+  rownames_to_column("ID") %>%
+  as_tibble()
+```
+
+```{r, echo=FALSE}
+# blast_result <- read_tsv("~/TigerSnakeTranscriptomeVG/3_transcriptomeAssembly/collaspedTrinityDeNovo90/qualityAssessment/blastx.outfmt6", col_names = FALSE) %>%
+#   rename(ID = X1,
+#          Uniprot = X2) %>%
+#   dplyr::select(-starts_with("X")) %>%
+#   mutate(ID = gsub("_i[0-9]+", "", ID))
+```
+
+```{r, echo=FALSE}
+# result_table %>%
+#   slice(1:10) %>%
+#   dplyr::select(-FDR) %>%
+#   left_join(blast_result) %>%
+#   pander()
+```
+
+
+
